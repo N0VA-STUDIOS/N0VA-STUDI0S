@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>N○VA-STUDI●S</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Schoolbell&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg:#050816;
+      --bg-2:#0b1023;
+      --card:#11162c;
+      --card-2:#151b36;
+      --line:rgba(120,170,255,.18);
+      --text:#eef3ff;
+      --muted:#a6b2d3;
+      --accent:#67d7ff;
+      --accent-2:#79ffb7;
+      --accent-3:#b48cff;
+      --shadow:0 18px 45px rgba(0,0,0,.35);
+      --radius:22px;
+    }
+
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+    }
+
+    html{
+      scroll-behavior:smooth;
+    }
+
+    body{
+      font-family:'Schoolbell', cursive;
+      background:
+        radial-gradient(circle at top, rgba(103,215,255,.15), transparent 30%),
+        radial-gradient(circle at 80% 20%, rgba(180,140,255,.10), transparent 22%),
+        linear-gradient(180deg, #040611 0%, #050816 45%, #02030a 100%);
+      color:var(--text);
+      overflow-x:hidden;
+      min-height:100vh;
+      cursor:crosshair;
+    }
+
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          rgba(255,255,255,.035) 0px,
+          rgba(255,255,255,.035) 1px,
+          transparent 2px,
+          transparent 4px
+        );
+      mix-blend-mode:overlay;
+      opacity:.55;
+      z-index:50;
+    }
+
+    .bg{
+      position:fixed;
+      inset:0;
+      z-index:-5;
+      overflow:hidden;
+    }
+
+    .stars{
+      position:absolute;
+      inset:0;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(255,255,255,.9) 0 1px, transparent 2px),
+        radial-gradient(circle at 28% 62%, rgba(255,255,255,.8) 0 1px, transparent 2px),
+        radial-gradient(circle at 44% 26%, rgba(103,215,255,.8) 0 1px, transparent 2px),
+        radial-gradient(circle at 66% 12%, rgba(255,255,255,.9) 0 1px, transparent 2px),
+        radial-gradient(circle at 78% 54%, rgba(255,255,255,.7) 0 1px, transparent 2px),
+        radial-gradient(circle at 92% 28%, rgba(180,140,255,.7) 0 1px, transparent 2px);
+      background-size: 320px 220px;
+      animation: drift 140s linear infinite;
+      opacity:.9;
+    }
+
+    .stars::before,
+    .stars::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background-repeat:repeat;
+    }
+
+    .stars::before{
+      background-image:
+        radial-gradient(circle, rgba(255,255,255,.8) 0 1px, transparent 2px),
+        radial-gradient(circle, rgba(103,215,255,.7) 0 1px, transparent 2px);
+      background-size: 180px 120px;
+      opacity:.35;
+      animation: drift 220s linear infinite reverse;
+    }
+
+    .stars::after{
+      background-image:
+        radial-gradient(circle, rgba(255,255,255,.85) 0 1px, transparent 2px);
+      background-size: 110px 90px;
+      opacity:.22;
+      animation: drift 300s linear infinite;
+    }
+
+    @keyframes drift{
+      from{ transform:translateY(0); }
+      to{ transform:translateY(-500px); }
+    }
+
+    .earth{
+      position:absolute;
+      width:420px;
+      height:420px;
+      right:-120px;
+      bottom:-160px;
+      border-radius:50%;
+      background:
+        radial-gradient(circle at 35% 30%, rgba(255,255,255,.55), transparent 10%),
+        radial-gradient(circle at 50% 50%, #5ddcff 0 18%, #2484ff 19% 36%, #10366b 37% 58%, #071126 59% 100%);
+      box-shadow:
+        0 0 40px rgba(103,215,255,.25),
+        0 0 90px rgba(121,255,183,.12),
+        inset -22px -22px 40px rgba(0,0,0,.45);
+      animation: floatEarth 10s ease-in-out infinite;
+      opacity:.85;
+    }
+
+    .earth::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      border-radius:50%;
+      background:
+        radial-gradient(circle at 28% 40%, rgba(82,255,147,.95) 0 5%, transparent 6%),
+        radial-gradient(circle at 34% 58%, rgba(82,255,147,.9) 0 9%, transparent 10%),
+        radial-gradient(circle at 52% 44%, rgba(82,255,147,.8) 0 7%, transparent 8%),
+        radial-gradient(circle at 67% 62%, rgba(82,255,147,.86) 0 8%, transparent 9%),
+        radial-gradient(circle at 74% 35%, rgba(82,255,147,.72) 0 5%, transparent 6%);
+      opacity:.95;
+    }
+
+    .earth::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      border-radius:50%;
+      background:linear-gradient(130deg, transparent 20%, rgba(255,255,255,.18) 38%, transparent 56%);
+      mix-blend-mode:screen;
+      animation: shine 14s linear infinite;
+    }
+
+    @keyframes floatEarth{
+      0%,100%{ transform:translateY(0) rotate(-3deg); }
+      50%{ transform:translateY(-18px) rotate(2deg); }
+    }
+
+    @keyframes shine{
+      from{ transform:rotate(0deg); }
+      to{ transform:rotate(360deg); }
+    }
+
+    .container{
+      width:min(1180px, calc(100% - 28px));
+      margin:0 auto;
+      position:relative;
+      z-index:2;
+    }
+
+    nav{
+      position:sticky;
+      top:0;
+      z-index:100;
+      background:rgba(3,6,12,.72);
+      backdrop-filter:blur(10px);
+      border-bottom:1px solid rgba(120,170,255,.14);
+    }
+
+    .nav-inner{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+      padding:16px 0;
+      flex-wrap:wrap;
+    }
+
+    .logo{
+      font-size:1.6rem;
+      letter-spacing:3px;
+      color:var(--accent-2);
+      text-shadow:0 0 10px rgba(121,255,183,.45);
+      transform:rotate(-1deg);
+      white-space:nowrap;
+    }
+
+    .nav-links{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .nav-links a{
+      text-decoration:none;
+      color:var(--text);
+      padding:9px 14px;
+      border:1px solid rgba(120,170,255,.16);
+      border-radius:999px;
+      background:rgba(255,255,255,.03);
+      transition:.2s ease;
+      font-size:1rem;
+    }
+
+    .nav-links a:hover{
+      transform:translateY(-2px);
+      border-color:rgba(103,215,255,.55);
+      box-shadow:0 0 18px rgba(103,215,255,.12);
+      color:var(--accent);
+    }
+
+    .hero{
+      min-height:calc(100vh - 78px);
+      display:grid;
+      place-items:center;
+      padding:56px 0 36px;
+    }
+
+    .hero-card{
+      width:100%;
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:24px;
+      align-items:center;
+      background:linear-gradient(180deg, rgba(17,22,44,.96), rgba(9,12,24,.92));
+      border:1px solid rgba(120,170,255,.16);
+      border-radius:30px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      padding:26px;
+    }
+
+    .hero-copy{
+      padding:10px 6px 10px 4px;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid rgba(103,215,255,.22);
+      background:rgba(103,215,255,.08);
+      color:var(--accent);
+      letter-spacing:1px;
+      margin-bottom:18px;
+      font-size:.95rem;
+    }
+
+    .hero h1{
+      font-size:clamp(3rem, 8vw, 6rem);
+      line-height:.92;
+      margin-bottom:16px;
+      letter-spacing:2px;
+      transform:rotate(-1deg);
+      text-shadow:
+        0 0 14px rgba(255,255,255,.12),
+        0 0 30px rgba(103,215,255,.16);
+      animation: wobble 6s ease-in-out infinite;
+    }
+
+    @keyframes wobble{
+      0%,100%{ transform:rotate(-1deg) translateY(0); }
+      50%{ transform:rotate(1deg) translateY(-2px); }
+    }
+
+    .hero p{
+      color:var(--muted);
+      font-size:1.2rem;
+      line-height:1.75;
+      max-width:58ch;
+      margin-bottom:24px;
+    }
+
+    .actions{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      text-decoration:none;
+      color:var(--text);
+      background:linear-gradient(180deg, rgba(26,34,68,.95), rgba(11,14,28,.95));
+      border:1px solid rgba(120,170,255,.18);
+      padding:14px 18px;
+      border-radius:16px;
+      transition:.22s ease;
+      box-shadow:0 10px 24px rgba(0,0,0,.25);
+      min-width:150px;
+      text-align:center;
+    }
+
+    .btn:hover{
+      transform:translateY(-3px);
+      border-color:rgba(103,215,255,.62);
+      box-shadow:0 0 18px rgba(103,215,255,.12), 0 12px 28px rgba(0,0,0,.28);
+    }
+
+    .btn.primary{
+      background:linear-gradient(180deg, rgba(103,215,255,.22), rgba(15,20,40,.95));
+      border-color:rgba(103,215,255,.42);
+    }
+
+    .btn.green{
+      background:linear-gradient(180deg, rgba(121,255,183,.18), rgba(15,20,40,.95));
+      border-color:rgba(121,255,183,.38);
+    }
+
+    .hero-side{
+      position:relative;
+      min-height:420px;
+      display:grid;
+      place-items:center;
+      border-radius:24px;
+      background:
+        radial-gradient(circle at center, rgba(103,215,255,.14), transparent 42%),
+        linear-gradient(180deg, rgba(20,26,50,.85), rgba(7,10,20,.95));
+      border:1px solid rgba(120,170,255,.12);
+      overflow:hidden;
+    }
+
+    .orbit{
+      position:absolute;
+      width:min(82vw, 320px);
+      height:min(82vw, 320px);
+      border-radius:50%;
+      border:1px dashed rgba(103,215,255,.24);
+      animation: spin 22s linear infinite;
+    }
+
+    .orbit::after{
+      content:"";
+      position:absolute;
+      top:-7px;
+      left:50%;
+      width:14px;
+      height:14px;
+      border-radius:4px;
+      transform:translateX(-50%);
+      background:var(--accent-2);
+      box-shadow:0 0 14px rgba(121,255,183,.75);
+    }
+
+    @keyframes spin{
+      from{ transform:rotate(0deg); }
+      to{ transform:rotate(360deg); }
+    }
+
+    .planet-mini{
+      width:min(76vw, 240px);
+      aspect-ratio:1;
+      border-radius:50%;
+      background:
+        radial-gradient(circle at 32% 30%, rgba(255,255,255,.8), rgba(255,255,255,.1) 10%, transparent 14%),
+        radial-gradient(circle at 50% 50%, #45d4ff 0 18%, #1f7bff 19% 36%, #0b3568 37% 58%, #061126 59% 100%);
+      box-shadow:
+        0 0 0 10px rgba(255,255,255,.03),
+        0 0 50px rgba(103,215,255,.22),
+        inset -20px -18px 40px rgba(0,0,0,.42);
+      position:relative;
+      animation: floatPlanet 8s ease-in-out infinite;
+    }
+
+    .planet-mini::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      border-radius:50%;
+      background:
+        radial-gradient(circle at 30% 40%, rgba(121,255,183,.95) 0 6%, transparent 7%),
+        radial-gradient(circle at 36% 58%, rgba(121,255,183,.85) 0 10%, transparent 11%),
+        radial-gradient(circle at 54% 43%, rgba(121,255,183,.78) 0 7%, transparent 8%),
+        radial-gradient(circle at 68% 63%, rgba(121,255,183,.86) 0 9%, transparent 10%);
+    }
+
+    @keyframes floatPlanet{
+      0%,100%{ transform:translateY(0) rotate(-2deg); }
+      50%{ transform:translateY(-12px) rotate(2deg); }
+    }
+
+    section{
+      padding:84px 0;
+    }
+
+    .section-head{
+      text-align:center;
+      margin-bottom:34px;
+    }
+
+    .section-head h2{
+      font-size:2.2rem;
+      letter-spacing:2px;
+      color:var(--accent-2);
+      margin-bottom:8px;
+      text-shadow:0 0 10px rgba(121,255,183,.16);
+    }
+
+    .section-head p{
+      color:var(--muted);
+      font-size:1.05rem;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
+      gap:18px;
+    }
+
+    .card{
+      background:linear-gradient(180deg, rgba(21,27,54,.95), rgba(10,13,26,.95));
+      border:1px solid rgba(120,170,255,.14);
+      border-radius:24px;
+      overflow:hidden;
+      box-shadow:0 14px 32px rgba(0,0,0,.22);
+      transition:.25s ease;
+    }
+
+    .card:hover{
+      transform:translateY(-5px);
+      border-color:rgba(103,215,255,.52);
+    }
+
+    .card-top{
+      height:170px;
+      background:
+        radial-gradient(circle at 25% 25%, rgba(103,215,255,.24), transparent 22%),
+        radial-gradient(circle at 72% 30%, rgba(121,255,183,.18), transparent 24%),
+        linear-gradient(135deg, rgba(28,44,82,.95), rgba(9,13,25,.98));
+      border-bottom:1px solid rgba(120,170,255,.12);
+      position:relative;
+      overflow:hidden;
+    }
+
+    .card-top::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(120deg, transparent 35%, rgba(255,255,255,.1) 48%, transparent 60%);
+      opacity:.5;
+      transform:translateX(-20%);
+    }
+
+    .card-body{
+      padding:18px;
+    }
+
+    .card h3{
+      font-size:1.45rem;
+      margin-bottom:8px;
+      color:var(--text);
+    }
+
+    .meta{
+      color:#8390b7;
+      font-size:.98rem;
+      margin-bottom:12px;
+    }
+
+    .card p{
+      color:var(--muted);
+      line-height:1.6;
+      margin-bottom:16px;
+      font-size:1.02rem;
+    }
+
+    .tags{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-bottom:16px;
+    }
+
+    .tag{
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:.88rem;
+      border:1px solid rgba(120,170,255,.14);
+      background:rgba(255,255,255,.03);
+      color:var(--text);
+    }
+
+    .card-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .card-actions .btn{
+      min-width:auto;
+      flex:1 1 120px;
+      padding:12px 14px;
+    }
+
+    .panel{
+      background:linear-gradient(180deg, rgba(21,27,54,.95), rgba(10,13,26,.95));
+      border:1px solid rgba(120,170,255,.14);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      padding:22px;
+    }
+
+    .timeline{
+      display:grid;
+      gap:14px;
+    }
+
+    .note{
+      padding:16px;
+      border-radius:18px;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(120,170,255,.10);
+    }
+
+    .note strong{
+      display:block;
+      margin-bottom:6px;
+      color:var(--accent);
+      letter-spacing:1px;
+    }
+
+    .note p{
+      color:var(--muted);
+      line-height:1.6;
+      font-size:1.02rem;
+    }
+
+    .links{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:14px;
+    }
+
+    .links a{
+      text-decoration:none;
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(120,170,255,.14);
+      background:rgba(255,255,255,.03);
+    }
+
+    .links a:hover{
+      border-color:rgba(103,215,255,.55);
+      color:var(--accent);
+    }
+
+    .footer{
+      margin-top:18px;
+      padding:22px 0 30px;
+      text-align:center;
+      color:#8792b2;
+      border-top:1px solid rgba(120,170,255,.10);
+      font-size:1rem;
+    }
+
+    .footer small{
+      display:block;
+      margin-top:6px;
+      opacity:.8;
+    }
+
+    .loader{
+      position:fixed;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:#040611;
+      z-index:9999;
+      transition:opacity .6s ease, visibility .6s ease;
+    }
+
+    .loader.hidden{
+      opacity:0;
+      visibility:hidden;
+    }
+
+    .loader-box{
+      text-align:center;
+    }
+
+    .spinner{
+      width:82px;
+      height:82px;
+      margin:0 auto 16px;
+      border-radius:50%;
+      border:7px solid rgba(255,255,255,.08);
+      border-top-color:var(--accent-2);
+      animation: spin 1s linear infinite;
+      box-shadow:0 0 20px rgba(121,255,183,.15);
+    }
+
+    .loader-box p{
+      color:var(--text);
+      letter-spacing:2px;
+      font-size:1.1rem;
+    }
+
+    @media (max-width: 920px){
+      .hero-card{
+        grid-template-columns:1fr;
+      }
+
+      .hero-side{
+        min-height:320px;
+      }
+
+      .earth{
+        width:300px;
+        height:300px;
+        right:-95px;
+        bottom:-110px;
+      }
+    }
+
+    @media (max-width: 700px){
+      .nav-inner{
+        justify-content:center;
+      }
+
+      .logo{
+        font-size:1.4rem;
+      }
+
+      .hero{
+        min-height:auto;
+        padding-top:34px;
+      }
+
+      .hero h1{
+        font-size:3rem;
+      }
+
+      section{
+        padding:64px 0;
+      }
+
+      .section-head h2{
+        font-size:1.8rem;
+      }
+
+      .btn{
+        width:100%;
+      }
+
+      .actions{
+        flex-direction:column;
+      }
+
+      .card-actions{
+        flex-direction:column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="loader" id="loader">
+    <div class="loader-box">
+      <div class="spinner"></div>
+      <p>LOADING N○VA-STUDI●S...</p>
+    </div>
+  </div>
+
+  <div class="bg" aria-hidden="true">
+    <div class="stars"></div>
+    <div class="earth"></div>
+  </div>
+
+  <nav>
+    <div class="container nav-inner">
+      <div class="logo">N○VA-STUDI●S</div>
+      <div class="nav-links">
+        <a href="#inicio">Inicio</a>
+        <a href="#juegos">Juegos</a>
+        <a href="#descargas">Descargas</a>
+        <a href="#trailers">Trailers</a>
+        <a href="#contacto">Contacto</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+    <section class="hero" id="inicio">
+      <div class="hero-card">
+        <div class="hero-copy">
+          <div class="badge">Retro worlds • pixel games • space vibes</div>
+          <h1>N○VA-STUDI●S</h1>
+          <p>
+            Un hub para tus juegos, demos, builds descargables y proyectos web.
+            Diseñado para sentirse retro, raro y espacial, pero limpio y fácil de editar.
+          </p>
+          <div class="actions">
+            <a class="btn primary" href="#juegos">Ver juegos</a>
+            <a class="btn green" href="#descargas">Descargas</a>
+            <a class="btn" href="#contacto">Contacto</a>
+          </div>
+        </div>
+
+        <div class="hero-side">
+          <div class="orbit"></div>
+          <div class="planet-mini" aria-label="Planeta decorativo"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="juegos">
+      <div class="section-head">
+        <h2>JUEGOS</h2>
+        <p>Versión web, prototipos, demos y proyectos principales</p>
+      </div>
+
+      <div class="grid" id="games-grid"></div>
+    </section>
+
+    <section id="descargas">
+      <div class="section-head">
+        <h2>DESCARGAS</h2>
+        <p>APK, ZIP, PC builds y archivos extra</p>
+      </div>
+
+      <div class="grid" id="downloads-grid"></div>
+    </section>
+
+    <section id="trailers">
+      <div class="section-head">
+        <h2>TRAILERS</h2>
+        <p>Videos, avances y clips de tus proyectos</p>
+      </div>
+
+      <div class="grid" id="trailers-grid"></div>
+    </section>
+
+    <section id="contacto">
+      <div class="section-head">
+        <h2>CONTACTO</h2>
+        <p>Tu espacio para redes, correo y comunidad</p>
+      </div>
+
+      <div class="panel">
+        <div class="timeline">
+          <div class="note">
+            <strong>Correo</strong>
+            <p>tuemail@ejemplo.com</p>
+          </div>
+
+          <div class="note">
+            <strong>Redes</strong>
+            <p>@nova-studios</p>
+          </div>
+
+          <div class="note">
+            <strong>Idea</strong>
+            <p>
+              Aquí puedes poner links a Discord, YouTube, itch.io, GitHub o cualquier otra página que uses para mostrar tus juegos.
+            </p>
+          </div>
+        </div>
+
+        <div class="links">
+          <a href="#">GitHub</a>
+          <a href="#">YouTube</a>
+          <a href="#">itch.io</a>
+          <a href="#">Discord</a>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      © 2026 N○VA-STUDI●S
+      <small>Hecho para GitHub Pages.</small>
+    </footer>
+  </main>
+
+  <script>
+    const games = [
+      {
+        title: "LAST SIGNAL",
+        type: "Juego principal",
+        description: "Exploración, historia y misterio. Perfecto para un botón de jugar o una demo web.",
+        tags: ["HTML", "Historia", "Demo"],
+        play: "#",
+        source: "#"
+      },
+      {
+        title: "PROYECTO 02",
+        type: "Prototipo web",
+        description: "Otro juego o prueba jugable con tu estilo retro espacial.",
+        tags: ["Web", "Retro", "Prototype"],
+        play: "#",
+        source: "#"
+      }
+    ];
+
+    const downloads = [
+      {
+        title: "LAST SIGNAL APK",
+        type: "Android",
+        description: "Archivo para instalar en celular.",
+        tags: ["APK", "Mobile", "Release"],
+        download: "#"
+      },
+      {
+        title: "BUILD PC",
+        type: "Windows",
+        description: "Versión para computadora o carpeta comprimida.",
+        tags: ["ZIP", "PC", "Build"],
+        download: "#"
+      }
+    ];
+
+    const trailers = [
+      {
+        title: "TEASER 01",
+        type: "Video",
+        description: "Pon aquí tu trailer de YouTube o embed.",
+        embed: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+      },
+      {
+        title: "DEVLOG",
+        type: "Video",
+        description: "Otro clip para mostrar avances.",
+        embed: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+      }
+    ];
+
+    function gameCard(item) {
+      return `
+        <article class="card">
+          <div class="card-top"></div>
+          <div class="card-body">
+            <h3>${item.title}</h3>
+            <div class="meta">${item.type}</div>
+            <p>${item.description}</p>
+            <div class="tags">
+              ${item.tags.map(tag => `<span class="tag">${tag}</span>`).join("")}
+            </div>
+            <div class="card-actions">
+              <a class="btn primary" href="${item.play}">Jugar</a>
+              <a class="btn" href="${item.source}">Ver más</a>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function downloadCard(item) {
+      return `
+        <article class="card">
+          <div class="card-top"></div>
+          <div class="card-body">
+            <h3>${item.title}</h3>
+            <div class="meta">${item.type}</div>
+            <p>${item.description}</p>
+            <div class="tags">
+              ${item.tags.map(tag => `<span class="tag">${tag}</span>`).join("")}
+            </div>
+            <div class="card-actions">
+              <a class="btn green" href="${item.download}">Descargar</a>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function trailerCard(item) {
+      return `
+        <article class="card">
+          <div class="card-top" style="padding:0;">
+            <iframe
+              title="${item.title}"
+              src="${item.embed}"
+              width="100%"
+              height="170"
+              style="border:0; display:block;"
+              allowfullscreen
+            ></iframe>
+          </div>
+          <div class="card-body">
+            <h3>${item.title}</h3>
+            <div class="meta">${item.type}</div>
+            <p>${item.description}</p>
+          </div>
+        </article>
+      `;
+    }
+
+    document.getElementById("games-grid").innerHTML = games.map(gameCard).join("");
+    document.getElementById("downloads-grid").innerHTML = downloads.map(downloadCard).join("");
+    document.getElementById("trailers-grid").innerHTML = trailers.map(trailerCard).join("");
+
+    window.addEventListener("load", () => {
+      setTimeout(() => {
+        const loader = document.getElementById("loader");
+        loader.classList.add("hidden");
+        setTimeout(() => loader.remove(), 650);
+      }, 900);
+    });
+  </script>
+</body>
+  </html>

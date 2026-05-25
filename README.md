@@ -1,2 +1,0 @@
-# N0VA-STUDI0S
-Games
