@@ -4,7 +4,384 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ProPaint & Pixel Art Studio</title>
+    <style><!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProPaint Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
+        :root { 
+            --bg-dark: #111111; --panel-bg: #1e1e1e; --border: #333333; 
+            --accent: #007fd4; --accent-hover: #006eb8;
+            --text-main: #cccccc; --text-bright: #ffffff;
+            --tool-bg: #252526; --danger: #d16969;
+        }
+
+        * { box-sizing: border-box; user-select: none; }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background: var(--bg-dark); color: var(--text-main); 
+            margin: 0; display: flex; height: 100vh; overflow: hidden; 
+        }
+
+        /* ICONOS SVG */
+        .icon { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+        .icon-sm { width: 15px; height: 15px; }
+
+        /* UI GENERAL */
+        button { background: transparent; color: var(--text-main); border: 1px solid transparent; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.15s ease; }
+        button:hover { background: #2a2d2e; color: var(--text-bright); }
+        button.primary { background: var(--accent); color: white; border: 1px solid var(--accent); }
+        button.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+        
+        select, input[type="text"] { background: var(--bg-dark); color: var(--text-bright); border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; font-size: 12px; outline: none; }
+        select:focus { border-color: var(--accent); }
+
+        /* SIDEBAR */
+        .sidebar { width: 240px; background: var(--tool-bg); border-right: 1px solid var(--border); transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); flex-shrink: 0; z-index: 10; overflow: hidden; }
+        .sidebar.collapsed { width: 0; border-right: none; }
+        .sidebar-inner { width: 240px; display: flex; flex-direction: column; height: 100%; }
+        .sidebar-header { padding: 12px 15px; font-size: 12px; font-weight: 600; letter-spacing: 1px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .sidebar-content { padding: 10px; flex: 1; overflow-y: auto; }
+        .project-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-radius: 4px; cursor: pointer; font-size: 13px; margin-bottom: 4px; }
+        .project-item:hover { background: #2a2d2e; }
+        .project-item.active { background: #37373d; color: var(--text-bright); border-left: 3px solid var(--accent); }
+        .project-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+        .btn-icon { padding: 4px; border-radius: 3px; display: flex; justify-content: center; align-items: center; }
+        .btn-icon:hover { background: rgba(255,255,255,0.1); }
+
+        /* MAIN WORKSPACE & TOP BAR */
+        .main-workspace { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
+        .top-bar { height: 48px; background: var(--panel-bg); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 15px; gap: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 5; }
+        .divider { width: 1px; height: 24px; background: var(--border); }
+        .tool-settings { display: flex; align-items: center; gap: 12px; font-size: 13px; }
+        
+        input[type="range"] { accent-color: var(--accent); cursor: pointer; width: 100px; }
+        input[type="color"] { -webkit-appearance: none; border: none; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; padding: 0; background: none; }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: 1px solid #555; border-radius: 4px; }
+
+        .editor-container { flex: 1; display: flex; background: var(--bg-dark); overflow: hidden; position: relative; }
+        .tool-palette { width: 50px; background: var(--panel-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; padding: 10px 0; gap: 8px; z-index: 2; }
+        .tool-btn { width: 36px; height: 36px; border-radius: 6px; display: flex; justify-content: center; align-items: center; }
+        .tool-btn.active { background: var(--accent); color: white; }
+
+        /* CANVAS AREA */
+        .canvas-area { flex: 1; display: flex; justify-content: center; align-items: center; overflow: auto; padding: 40px; position: relative; cursor: none; /* Oculta el cursor nativo */ }
+        .canvas-wrapper { position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.5); background: #ffffff; }
+        canvas { display: block; }
+        
+        /* CURSOR PREVIEW CUSTOM */
+        #cursorPreview {
+            position: fixed; pointer-events: none; border-radius: 50%;
+            transform: translate(-50%, -50%); z-index: 100; display: none;
+            box-shadow: 0 0 0 1px white, 0 0 0 2px black; /* Doble borde para máximo contraste */
+        }
+
+        .pixel-grid { position: absolute; inset: 0; pointer-events: none; display: none; background-image: linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,0.1) 1px, transparent 1px); background-size: 20px 20px; }
+        .pixel-grid.active { display: block; }
+        .toggle-switch { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+        .toggle-switch input { margin: 0; cursor: pointer; accent-color: var(--accent); }
+
+        /* Contenedores de herramientas dinámicos */
+        .context-menu { display: none; align-items: center; gap: 8px; }
+        .context-menu.active { display: flex; }
+
+    </style>
+</head>
+<body>
+
+    <div id="cursorPreview"></div>
+
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-inner">
+            <div class="sidebar-header">
+                <span>PROYECTOS</span>
+                <button id="btnNew" class="btn-icon" title="Nuevo Lienzo"><svg class="icon icon-sm"><path d="M12 5v14M5 12h14"/></svg></button>
+            </div>
+            <div class="sidebar-content">
+                <button id="btnSaveProj" class="primary" style="width: 100%; margin-bottom: 15px;">
+                    <svg class="icon"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8V3"/></svg> Guardar
+                </button>
+                <div id="projectList"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-workspace">
+        <div class="top-bar">
+            <button id="btnToggleMenu" class="btn-icon" title="Panel Lateral"><svg class="icon"><path d="M4 12h16M4 6h16M4 18h16"/></svg></button>
+            <div class="divider"></div>
+            
+            <div class="tool-settings">
+                <label class="toggle-switch" title="Cuadro por cuadro"><input type="checkbox" id="pixelModeToggle"> <strong>Pixel Art</strong></label>
+                <div class="divider"></div>
+                <input type="color" id="colorPicker" value="#000000" title="Color actual">
+                <label>Grosor:</label> <input type="range" id="brushSize" min="1" max="100" value="5">
+                <span id="brushSizeLabel" style="width: 35px;">5px</span>
+            </div>
+
+            <div class="divider"></div>
+
+            <div id="menuShape" class="context-menu">
+                <select id="shapeType">
+                    <option value="rect">Cuadrado / Rectángulo</option>
+                    <option value="circle">Círculo / Óvalo</option>
+                    <option value="line">Línea Recta</option>
+                </select>
+                <label class="toggle-switch"><input type="checkbox" id="fillShape"> Rellenar Figura</label>
+            </div>
+
+            <div id="menuText" class="context-menu">
+                <select id="fontType">
+                    <option value="Arial, sans-serif">Texto Normal</option>
+                    <option value="'Press Start 2P', cursive">Texto Pixel Art</option>
+                </select>
+            </div>
+
+            <div style="flex:1"></div>
+
+            <button id="btnUndo" title="Deshacer (Ctrl+Z)"><svg class="icon"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg></button>
+            <button id="btnClear" title="Limpiar"><svg class="icon"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+            <div class="divider"></div>
+            <button id="btnExport" class="primary" title="Exportar PNG"><svg class="icon icon-sm"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg> Exportar</button>
+        </div>
+
+        <div class="editor-container">
+            <div class="tool-palette" id="tools">
+                <button data-tool="brush" class="tool-btn active" title="Pincel (B)"><svg class="icon"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>
+                <button data-tool="eraser" class="tool-btn" title="Borrador (E)"><svg class="icon"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg></button>
+                <button data-tool="shape" class="tool-btn" title="Formas (U)"><svg class="icon"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></button>
+                <button data-tool="text" class="tool-btn" title="Texto (T)"><svg class="icon"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg></button>
+                <button data-tool="picker" class="tool-btn" title="Gotero (I)"><svg class="icon"><path d="m2 22 1-1h3l9-9"/><path d="M3 21v-3l9-9"/><path d="m15 6 3.4-3.4a2.1 2.1 0 1 1 3 3L18 9l.4.4a2.1 2.1 0 1 1-3 3l-3.8-3.8a2.1 2.1 0 1 1 3-3l.4.4Z"/></svg></button>
+            </div>
+
+            <div class="canvas-area" id="canvasArea">
+                <div class="canvas-wrapper" id="wrapper">
+                    <div id="pixelGrid" class="pixel-grid"></div>
+                    <canvas id="paintCanvas" width="800" height="600"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('paintCanvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const cursor = document.getElementById('cursorPreview');
+        const canvasArea = document.getElementById('canvasArea');
+        const wrapper = document.getElementById('wrapper');
+        
+        const ui = {
+            sidebar: document.getElementById('sidebar'), projectList: document.getElementById('projectList'),
+            grid: document.getElementById('pixelGrid'), color: document.getElementById('colorPicker'),
+            size: document.getElementById('brushSize'), sizeLabel: document.getElementById('brushSizeLabel'),
+            tools: document.querySelectorAll('.tool-btn'), pixelMode: document.getElementById('pixelModeToggle'),
+            menuShape: document.getElementById('menuShape'), menuText: document.getElementById('menuText'),
+            shapeType: document.getElementById('shapeType'), fillShape: document.getElementById('fillShape'),
+            fontType: document.getElementById('fontType')
+        };
+
+        let state = { 
+            drawing: false, tool: 'brush', isPixelMode: false,
+            pSize: 20, lastX: 0, lastY: 0, undoStack: [], currentProject: null,
+            snapshot: null // Para guardar el estado temporal al dibujar formas
+        };
+
+        // IndexedDB Manager se mantiene igual...
+        const dbManager = {
+            async init() { return new Promise(r => { const req = indexedDB.open('ProPaintStudio', 3); req.onupgradeneeded = e => { if (!e.target.result.objectStoreNames.contains('projects')) e.target.result.createObjectStore('projects'); }; req.onsuccess = e => r(e.target.result); req.onerror = () => r(null); }); },
+            async save(n, d) { const db = await this.init(); if (!db) return; return new Promise(r => { db.transaction('projects', 'readwrite').objectStore('projects').put(d, n).oncomplete = () => r(); }); },
+            async load(n) { const db = await this.init(); if (!db) return null; return new Promise(r => { const req = db.transaction('projects').objectStore('projects').get(n); req.onsuccess = () => r(req.result); }); },
+            async delete(n) { const db = await this.init(); if (!db) return; return new Promise(r => { db.transaction('projects', 'readwrite').objectStore('projects').delete(n).oncomplete = () => r(); }); },
+            async getKeys() { const db = await this.init(); if (!db) return []; return new Promise(r => { const req = db.transaction('projects').objectStore('projects').getAllKeys(); req.onsuccess = () => r(req.result); }); }
+        };
+
+        function initCanvas() { clearCanvas(false); dbManager.load('_active_session').then(data => { if (data) loadToCanvas(data); const prev = localStorage.getItem('activeProject'); if (prev) state.currentProject = prev; renderProjects(); }); }
+        function loadToCanvas(dataURL) { const img = new Image(); img.src = dataURL; img.onload = () => { ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.drawImage(img, 0, 0); saveState(false); }; }
+
+        const getPos = (e) => { const r = canvas.getBoundingClientRect(); return { x: (e.clientX - r.left) * (canvas.width / r.width), y: (e.clientY - r.top) * (canvas.height / r.height) }; };
+        const rgbToHex = (r, g, b) => '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+
+        // --- SISTEMA DE CURSOR ---
+        const updateCursorSettings = () => {
+            if (state.tool === 'brush' || state.tool === 'eraser') {
+                const s = ui.size.value;
+                // Calculamos el tamaño visual considerando la escala del canvas
+                const rect = canvas.getBoundingClientRect();
+                const scale = rect.width / canvas.width; 
+                cursor.style.width = `${s * scale}px`;
+                cursor.style.height = `${s * scale}px`;
+                cursor.style.borderRadius = state.isPixelMode ? '0%' : '50%';
+                cursor.style.display = 'block';
+                canvasArea.style.cursor = 'none';
+            } else {
+                cursor.style.display = 'none';
+                canvasArea.style.cursor = state.tool === 'picker' ? 'crosshair' : (state.tool === 'text' ? 'text' : 'crosshair');
+            }
+        };
+
+        window.addEventListener('mousemove', e => {
+            if (cursor.style.display === 'block') {
+                cursor.style.left = e.clientX + 'px';
+                cursor.style.top = e.clientY + 'px';
+            }
+        });
+        canvasArea.addEventListener('mouseleave', () => cursor.style.display = 'none');
+        canvasArea.addEventListener('mouseenter', updateCursorSettings);
+
+        // --- LÓGICA DE DIBUJO Y HERRAMIENTAS ---
+        const startInteraction = (e) => {
+            const { x, y } = getPos(e);
+            
+            if (state.tool === 'picker') {
+                const pixel = ctx.getImageData(x, y, 1, 1).data;
+                ui.color.value = rgbToHex(pixel[0], pixel[1], pixel[2]); return;
+            }
+
+            if (state.tool === 'text') {
+                const text = prompt("Introduce el texto:");
+                if (text) {
+                    ctx.fillStyle = ui.color.value;
+                    // El tamaño de fuente escala con el grosor del slider (multiplicado para ser legible)
+                    ctx.font = `${ui.size.value * 3}px ${ui.fontType.value}`;
+                    // Desactivar suavizado si es Pixel Art
+                    if (ui.fontType.value.includes('Press Start 2P')) { ctx.imageSmoothingEnabled = false; } else { ctx.imageSmoothingEnabled = true; }
+                    ctx.fillText(text, x, y);
+                    saveState(true);
+                }
+                return;
+            }
+
+            state.drawing = true; 
+            [state.lastX, state.lastY] = [x, y]; 
+            
+            if (state.tool === 'shape') {
+                state.snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            } else {
+                processDraw(x, y);
+            }
+        };
+
+        const stopInteraction = () => { if (!state.drawing) return; state.drawing = false; ctx.beginPath(); saveState(true); };
+        
+        const drawInteraction = (e) => { 
+            if (!state.drawing || state.tool === 'picker' || state.tool === 'text') return; 
+            const { x, y } = getPos(e); 
+            
+            if (state.tool === 'shape') {
+                // Restauramos el canvas al punto de partida
+                ctx.putImageData(state.snapshot, 0, 0);
+                drawShape(x, y);
+            } else {
+                processDraw(x, y); 
+            }
+        };
+
+        const drawShape = (x, y) => {
+            ctx.beginPath();
+            ctx.lineWidth = ui.size.value;
+            ctx.strokeStyle = ui.color.value;
+            ctx.fillStyle = ui.color.value;
+
+            const shape = ui.shapeType.value;
+            if (shape === 'rect') {
+                ctx.rect(state.lastX, state.lastY, x - state.lastX, y - state.lastY);
+            } else if (shape === 'circle') {
+                const radius = Math.sqrt(Math.pow(x - state.lastX, 2) + Math.pow(y - state.lastY, 2));
+                ctx.arc(state.lastX, state.lastY, radius, 0, 2 * Math.PI);
+            } else if (shape === 'line') {
+                ctx.moveTo(state.lastX, state.lastY);
+                ctx.lineTo(x, y);
+            }
+
+            if (ui.fillShape.checked && shape !== 'line') ctx.fill();
+            else ctx.stroke();
+        };
+
+        const processDraw = (x, y) => {
+            if (state.isPixelMode) {
+                const px = Math.floor(x / state.pSize) * state.pSize;
+                const py = Math.floor(y / state.pSize) * state.pSize;
+                ctx.fillStyle = state.tool === 'eraser' ? '#ffffff' : ui.color.value;
+                
+                // Si el borrador o pincel es más grande que el bloque, dibujar bloques adyacentes
+                const blocks = Math.ceil(ui.size.value / 10); // Fórmula rudimentaria para escalar pixeles
+                for(let i = 0; i < blocks; i++) {
+                    for(let j = 0; j < blocks; j++) {
+                        ctx.fillRect(px + (i * state.pSize), py + (j * state.pSize), state.pSize, state.pSize);
+                    }
+                }
+            } else {
+                ctx.lineWidth = ui.size.value; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+                ctx.strokeStyle = state.tool === 'eraser' ? '#ffffff' : ui.color.value;
+                ctx.beginPath(); ctx.moveTo(state.lastX, state.lastY); ctx.lineTo(x, y); ctx.stroke();
+                [state.lastX, state.lastY] = [x, y];
+            }
+        };
+
+        const saveState = (writeToDB = true) => {
+            const url = canvas.toDataURL('image/png');
+            if (state.undoStack.length > 20) state.undoStack.shift();
+            state.undoStack.push(url);
+            if (writeToDB) { dbManager.save('_active_session', url); if (state.currentProject) dbManager.save(state.currentProject, url); }
+        };
+
+        const undo = () => {
+            if (state.undoStack.length > 1) {
+                state.undoStack.pop(); loadToCanvas(state.undoStack[state.undoStack.length - 1]);
+                setTimeout(() => { dbManager.save('_active_session', canvas.toDataURL()); if(state.currentProject) dbManager.save(state.currentProject, canvas.toDataURL()); }, 50);
+            }
+        };
+
+        const clearCanvas = (resetProject = true) => { ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, canvas.width, canvas.height); if(resetProject) { state.currentProject = null; localStorage.removeItem('activeProject'); } saveState(true); renderProjects(); };
+
+        async function saveProject() { const name = prompt("Nombre del proyecto:", state.currentProject || "Nuevo Proyecto"); if (!name || name === '_active_session') return; await dbManager.save(name, canvas.toDataURL()); state.currentProject = name; localStorage.setItem('activeProject', name); renderProjects(); }
+        async function renderProjects() { const keys = await dbManager.getKeys(); ui.projectList.innerHTML = ""; keys.filter(k => k !== '_active_session').forEach(key => { const div = document.createElement('div'); div.className = `project-item ${state.currentProject === key ? 'active' : ''}`; div.innerHTML = `<span class="project-name" title="${key}">${key}</span> <button class="btn-icon" style="color:var(--danger)" title="Eliminar"><svg class="icon"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>`; div.addEventListener('click', async () => { const data = await dbManager.load(key); if (data) { state.currentProject = key; localStorage.setItem('activeProject', key); loadToCanvas(data); renderProjects(); } }); div.querySelector('button').addEventListener('click', async (e) => { e.stopPropagation(); if (confirm(`¿Eliminar permanente "${key}"?`)) { await dbManager.delete(key); if (state.currentProject === key) { state.currentProject = null; localStorage.removeItem('activeProject'); } renderProjects(); } }); ui.projectList.appendChild(div); }); }
+
+        // --- MANEJADORES DE INTERFAZ ---
+        canvas.addEventListener('mousedown', startInteraction); window.addEventListener('mousemove', drawInteraction); window.addEventListener('mouseup', stopInteraction);
+        
+        document.getElementById('tools').addEventListener('click', (e) => {
+            const btn = e.target.closest('.tool-btn'); if (!btn) return;
+            state.tool = btn.dataset.tool; 
+            ui.tools.forEach(b => b.classList.remove('active')); btn.classList.add('active');
+            
+            // Alternar menús contextuales en el Topbar
+            ui.menuShape.classList.toggle('active', state.tool === 'shape');
+            ui.menuText.classList.toggle('active', state.tool === 'text');
+            updateCursorSettings();
+        });
+
+        ui.size.addEventListener('input', e => { ui.sizeLabel.textContent = `${e.target.value}px`; updateCursorSettings(); });
+        ui.pixelMode.addEventListener('change', (e) => { state.isPixelMode = e.target.checked; ui.grid.classList.toggle('active', state.isPixelMode); updateCursorSettings(); });
+        document.getElementById('btnToggleMenu').addEventListener('click', () => ui.sidebar.classList.toggle('collapsed'));
+        document.getElementById('btnClear').addEventListener('click', () => { if(confirm('¿Limpiar lienzo?')) clearCanvas(true); });
+        document.getElementById('btnNew').addEventListener('click', () => clearCanvas(true));
+        document.getElementById('btnUndo').addEventListener('click', undo);
+        document.getElementById('btnSaveProj').addEventListener('click', saveProject);
+        document.getElementById('btnExport').addEventListener('click', () => { const a = document.createElement('a'); a.download = `${state.currentProject || 'Dibujo'}.png`; a.href = canvas.toDataURL('image/png'); a.click(); });
+
+        document.addEventListener('keydown', e => { 
+            if (e.ctrlKey && e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); }
+            if (e.ctrlKey && e.key.toLowerCase() === 's') { e.preventDefault(); saveProject(); }
+            if (!e.ctrlKey) { 
+                if (e.key.toLowerCase() === 'b') document.querySelector('[data-tool="brush"]').click(); 
+                if (e.key.toLowerCase() === 'e') document.querySelector('[data-tool="eraser"]').click(); 
+                if (e.key.toLowerCase() === 'u') document.querySelector('[data-tool="shape"]').click();
+                if (e.key.toLowerCase() === 't') document.querySelector('[data-tool="text"]').click();
+                if (e.key.toLowerCase() === 'i') document.querySelector('[data-tool="picker"]').click(); 
+            }
+        });
+
+        initCanvas();
+        updateCursorSettings(); // Ejecutar al inicio
+    </script>
+</body>
+</html>
         :root { --bg: #1e1e1e; --panel: #2d2d2d; --sidebar-bg: #252526; --btn: #4a4a4a; --accent: #007acc; --text: #fff; --border: #3c3c3c; }
         * { box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; }
