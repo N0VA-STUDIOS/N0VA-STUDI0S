@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ProPaint Studio</title>
+    <title>ProPaint Studio - Ultimate</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         :root { 
@@ -18,8 +18,7 @@
         body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
             background: var(--bg-dark); color: var(--text-main); 
-            margin: 0; display: flex; height: 100vh; overflow: hidden; 
-            overscroll-behavior: none;
+            margin: 0; display: flex; height: 100vh; overflow: hidden; overscroll-behavior: none;
         }
 
         .icon { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
@@ -32,18 +31,24 @@
         
         select, input[type="text"] { background: var(--bg-dark); color: var(--text-bright); border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; font-size: 12px; outline: none; }
 
-        /* SIDEBAR (Ahora con Proyectos y Capas) */
-        .sidebar { width: 260px; background: var(--tool-bg); border-right: 1px solid var(--border); transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); flex-shrink: 0; z-index: 100; overflow: hidden; display: flex; flex-direction: column; }
+        .sidebar { width: 260px; background: var(--tool-bg); border-right: 1px solid var(--border); transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); flex-shrink: 0; z-index: 100; overflow-y: auto; display: flex; flex-direction: column; }
         .sidebar.collapsed { width: 0; border-right: none; }
-        .sidebar-section { flex: 1; display: flex; flex-direction: column; min-height: 0; border-bottom: 1px solid var(--border); }
+        .sidebar-section { flex: none; display: flex; flex-direction: column; border-bottom: 1px solid var(--border); }
         .sidebar-header { padding: 12px 15px; font-size: 12px; font-weight: 600; letter-spacing: 1px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: #252526;}
-        .sidebar-content { padding: 10px; flex: 1; overflow-y: auto; }
+        .sidebar-content { padding: 10px; }
         
         .list-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; border-radius: 4px; cursor: pointer; font-size: 13px; margin-bottom: 4px; border: 1px solid transparent; }
         .list-item:hover { background: #2a2d2e; }
         .list-item.active { background: #37373d; color: var(--text-bright); border-color: var(--accent); }
         .item-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
         .btn-icon { padding: 4px; border-radius: 3px; display: flex; justify-content: center; align-items: center; }
+
+        /* PALETAS */
+        .palette-group { margin-bottom: 10px; }
+        .palette-title { font-size: 11px; color: #888; margin-bottom: 5px; text-transform: uppercase; }
+        .swatch-container { display: flex; gap: 4px; flex-wrap: wrap; }
+        .swatch { width: 24px; height: 24px; border-radius: 4px; cursor: pointer; border: 1px solid #000; box-shadow: inset 0 0 2px rgba(255,255,255,0.2); }
+        .swatch:hover { transform: scale(1.1); }
 
         .main-workspace { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
         
@@ -52,21 +57,21 @@
         .divider { width: 1px; height: 24px; background: var(--border); flex-shrink: 0; }
         .tool-settings { display: flex; align-items: center; gap: 10px; font-size: 13px; flex-shrink: 0; }
         
-        input[type="range"] { accent-color: var(--accent); cursor: pointer; width: 70px; }
+        input[type="range"] { accent-color: var(--accent); cursor: pointer; width: 60px; }
         input[type="color"] { -webkit-appearance: none; border: none; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; padding: 0; background: none; }
         input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
         input[type="color"]::-webkit-color-swatch { border: 1px solid #555; border-radius: 4px; }
 
         .editor-container { flex: 1; display: flex; background: var(--bg-dark); overflow: hidden; position: relative; }
         
-        .tool-palette { width: 50px; background: var(--panel-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; padding: 10px 0; gap: 8px; z-index: 2; flex-shrink: 0; }
+        .tool-palette { width: 50px; background: var(--panel-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; padding: 10px 0; gap: 8px; z-index: 2; flex-shrink: 0; overflow-y: auto;}
         .tool-btn { width: 36px; height: 36px; border-radius: 6px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
         .tool-btn.active { background: var(--accent); color: white; }
 
-        .canvas-area { flex: 1; display: flex; justify-content: center; align-items: center; overflow: auto; padding: 20px; position: relative; cursor: none; touch-action: none; }
+        /* CANVAS AREA MODIFICADA PARA ZOOM Y PANORÁMICA */
+        .canvas-area { flex: 1; overflow: auto; padding: 40px; position: relative; cursor: crosshair; touch-action: none; display: flex; justify-content: center; align-items: center;}
         
-        /* Contenedor de capas apiladas */
-        .canvas-wrapper { position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.5); width: 800px; height: 600px; background: #ffffff; flex-shrink: 0;}
+        .canvas-wrapper { position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.5); width: 800px; height: 600px; background: #ffffff; flex-shrink: 0; transform-origin: center center; transition: transform 0.1s ease-out; }
         .layer-canvas { position: absolute; top: 0; left: 0; pointer-events: none; }
         .layer-canvas.active-layer { pointer-events: auto; }
         
@@ -83,11 +88,10 @@
         @media (max-width: 768px) {
             .sidebar { position: absolute; height: 100%; box-shadow: 2px 0 10px rgba(0,0,0,0.5); }
             .editor-container { flex-direction: column-reverse; } 
-            .tool-palette { width: 100%; height: 50px; flex-direction: row; border-right: none; border-top: 1px solid var(--border); padding: 0 10px; justify-content: center; overflow-x: auto; }
+            .tool-palette { width: 100%; height: 50px; flex-direction: row; border-right: none; border-top: 1px solid var(--border); padding: 0 10px; justify-content: flex-start; overflow-x: auto; }
             .top-bar { padding: 0 10px; }
             .btn-text { display: none; } 
-            .canvas-area { padding: 10px; }
-            .canvas-wrapper { transform-origin: top left; transform: scale(0.4); } /* Escala inicial móvil */
+            .canvas-area { padding: 10px; justify-content: flex-start; align-items: flex-start; }
             #cursorPreview { display: none !important; }
         }
     </style>
@@ -98,15 +102,52 @@
 
     <div id="sidebar" class="sidebar collapsed">
         
-        <div class="sidebar-section" style="flex: 1.2;">
+        <div class="sidebar-section">
+            <div class="sidebar-header"><span>PALETAS</span></div>
+            <div class="sidebar-content" id="paletteList">
+                <div class="palette-group">
+                    <div class="palette-title">GameBoy</div>
+                    <div class="swatch-container">
+                        <div class="swatch" style="background:#0f380f" data-hex="#0f380f"></div>
+                        <div class="swatch" style="background:#306230" data-hex="#306230"></div>
+                        <div class="swatch" style="background:#8bac0f" data-hex="#8bac0f"></div>
+                        <div class="swatch" style="background:#9bbc0f" data-hex="#9bbc0f"></div>
+                    </div>
+                </div>
+                <div class="palette-group">
+                    <div class="palette-title">NES Clásica</div>
+                    <div class="swatch-container">
+                        <div class="swatch" style="background:#000000" data-hex="#000000"></div>
+                        <div class="swatch" style="background:#ffffff" data-hex="#ffffff"></div>
+                        <div class="swatch" style="background:#b80000" data-hex="#b80000"></div>
+                        <div class="swatch" style="background:#f83800" data-hex="#f83800"></div>
+                        <div class="swatch" style="background:#0000a8" data-hex="#0000a8"></div>
+                        <div class="swatch" style="background:#007800" data-hex="#007800"></div>
+                        <div class="swatch" style="background:#fca044" data-hex="#fca044"></div>
+                    </div>
+                </div>
+                <div class="palette-group">
+                    <div class="palette-title">Cielo Nocturno</div>
+                    <div class="swatch-container">
+                        <div class="swatch" style="background:#2b2d42" data-hex="#2b2d42"></div>
+                        <div class="swatch" style="background:#8d99ae" data-hex="#8d99ae"></div>
+                        <div class="swatch" style="background:#edf2f4" data-hex="#edf2f4"></div>
+                        <div class="swatch" style="background:#ef233c" data-hex="#ef233c"></div>
+                        <div class="swatch" style="background:#d90429" data-hex="#d90429"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-section" style="max-height: 250px;">
             <div class="sidebar-header">
                 <span>CAPAS</span>
                 <button id="btnAddLayer" class="btn-icon" title="Nueva Capa"><svg class="icon icon-sm"><path d="M12 5v14M5 12h14"/></svg></button>
             </div>
-            <div class="sidebar-content" id="layerList"></div>
+            <div class="sidebar-content" style="overflow-y:auto;" id="layerList"></div>
         </div>
 
-        <div class="sidebar-section">
+        <div class="sidebar-section" style="flex:1;">
             <div class="sidebar-header">
                 <span>PROYECTOS</span>
                 <button id="btnNewProj" class="btn-icon" title="Nuevo Proyecto"><svg class="icon icon-sm"><path d="M12 5v14M5 12h14"/></svg></button>
@@ -127,10 +168,18 @@
             
             <div class="tool-settings">
                 <label class="toggle-switch" title="Cuadro por cuadro"><input type="checkbox" id="pixelModeToggle"> <strong class="btn-text">Pixel</strong></label>
+                <label class="toggle-switch" title="Suavizar curvas (Lazy Mouse)"><input type="checkbox" id="smoothStroke" checked> <strong class="btn-text">Estabilizar</strong></label>
                 <div class="divider"></div>
                 <input type="color" id="colorPicker" value="#000000" title="Color actual">
                 <input type="range" id="brushSize" min="1" max="100" value="5">
                 <span id="brushSizeLabel" style="width: 30px; font-size: 11px;">5px</span>
+            </div>
+
+            <div class="divider"></div>
+            <div class="tool-settings">
+                <button id="btnZoomOut" class="btn-icon" title="Alejar"><svg class="icon icon-sm"><path d="M5 12h14"/></svg></button>
+                <span id="zoomLabel" style="font-size: 11px; width:40px; text-align:center;">100%</span>
+                <button id="btnZoomIn" class="btn-icon" title="Acercar"><svg class="icon icon-sm"><path d="M12 5v14M5 12h14"/></svg></button>
             </div>
 
             <div class="divider"></div>
@@ -144,8 +193,7 @@
 
             <div id="menuText" class="context-menu">
                 <select id="fontType">
-                    <option value="Arial, sans-serif">Texto Normal</option>
-                    <option value="'Press Start 2P', cursive">Texto Pixel</option>
+                    <option value="Arial, sans-serif">Texto Normal</option><option value="'Press Start 2P', cursive">Texto Pixel</option>
                 </select>
             </div>
 
@@ -154,17 +202,14 @@
             <button id="btnUndo" title="Deshacer (Ctrl+Z)"><svg class="icon"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg></button>
             <div class="divider"></div>
             
-            <button id="btnWallpaper" title="Guardar como Fondo de Pantalla (ajusta a tu pantalla)">
-                <svg class="icon"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-                <span class="btn-text">Fondo</span>
-            </button>
-            
-            <button id="btnExport" class="primary" title="Exportar PNG"><svg class="icon icon-sm"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg> <span class="btn-text">Exportar</span></button>
+            <button id="btnWallpaper" title="Fondo de Pantalla"><svg class="icon"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></button>
+            <button id="btnExport" class="primary" title="Exportar Escalado"><svg class="icon icon-sm"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg> <span class="btn-text">Exportar</span></button>
         </div>
 
         <div class="editor-container">
             <div class="tool-palette" id="tools">
                 <button data-tool="brush" class="tool-btn active" title="Pincel (B)"><svg class="icon"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>
+                <button data-tool="airbrush" class="tool-btn" title="Aerógrafo (A)"><svg class="icon"><path d="M12 4v4M12 16v4M4 12h4M16 12h4M6.3 6.3l2.8 2.8M14.9 14.9l2.8 2.8M6.3 17.7l2.8-2.8M14.9 9.1l2.8-2.8"/></svg></button>
                 <button data-tool="eraser" class="tool-btn" title="Borrador (E)"><svg class="icon"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg></button>
                 <button data-tool="bucket" class="tool-btn" title="Bote de Pintura (G)"><svg class="icon"><path d="M19 11h-8m0 0-4-4m4 4 4 4m-4-4L6.5 2.5a2.12 2.12 0 0 0-3 3L11 13m4-6 5 5M2 22h20"/></svg></button>
                 <button data-tool="shape" class="tool-btn" title="Formas (U)"><svg class="icon"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></button>
@@ -186,16 +231,20 @@
             projectList: document.getElementById('projectList'), sidebar: document.getElementById('sidebar'),
             color: document.getElementById('colorPicker'), size: document.getElementById('brushSize'),
             sizeLabel: document.getElementById('brushSizeLabel'), tools: document.querySelectorAll('.tool-btn'),
-            pixelMode: document.getElementById('pixelModeToggle'), cursor: document.getElementById('cursorPreview'),
-            grid: document.getElementById('pixelGrid'), canvasArea: document.getElementById('canvasArea')
+            pixelMode: document.getElementById('pixelModeToggle'), smoothMode: document.getElementById('smoothStroke'),
+            cursor: document.getElementById('cursorPreview'), grid: document.getElementById('pixelGrid'), 
+            canvasArea: document.getElementById('canvasArea'), zoomLabel: document.getElementById('zoomLabel')
         };
 
         const canvasWidth = 800; const canvasHeight = 600;
         let layers = []; let activeLayerId = null; let layerCounter = 0;
+        let zoomLevel = 1;
 
         let state = { 
             drawing: false, tool: 'brush', isPixelMode: false, pSize: 20, 
-            lastX: 0, lastY: 0, undoStack: [], currentProject: null, snapshot: null 
+            lastX: 0, lastY: 0, undoStack: [], currentProject: null, snapshot: null,
+            spacePressed: false, panActive: false, panX: 0, panY: 0, scrollX: 0, scrollY: 0,
+            pts: [] // Para Smooth Stroke
         };
 
         // --- SISTEMA DE CAPAS ---
@@ -209,11 +258,9 @@
             canvas.className = 'layer-canvas';
             canvas.width = canvasWidth; canvas.height = canvasHeight;
             const ctx = canvas.getContext('2d', { willReadFrequently: true });
-            
             ui.wrapper.appendChild(canvas);
-            layers.unshift({ id, canvas, ctx, name: name || `Capa ${layerCounter}`, visible: true }); // Insertar al inicio para que quede arriba en UI
+            layers.unshift({ id, canvas, ctx, name: name || `Capa ${layerCounter}`, visible: true }); 
             selectLayer(id);
-            renderLayersUI();
         };
 
         const selectLayer = (id) => {
@@ -230,28 +277,20 @@
             const index = layers.findIndex(l => l.id === id);
             ui.wrapper.removeChild(layers[index].canvas);
             layers.splice(index, 1);
-            if(activeLayerId === id) selectLayer(layers[0].id);
-            else renderLayersUI();
+            if(activeLayerId === id) selectLayer(layers[0].id); else renderLayersUI();
             saveState(true);
         };
 
         const toggleLayerVisibility = (id) => {
-            const layer = layers.find(l => l.id === id);
-            layer.visible = !layer.visible;
-            layer.canvas.style.display = layer.visible ? 'block' : 'none';
-            renderLayersUI();
+            const layer = layers.find(l => l.id === id); layer.visible = !layer.visible;
+            layer.canvas.style.display = layer.visible ? 'block' : 'none'; renderLayersUI();
         };
 
         const renderLayersUI = () => {
             ui.layerList.innerHTML = '';
             layers.forEach(l => {
-                const div = document.createElement('div');
-                div.className = `list-item ${l.id === activeLayerId ? 'active' : ''}`;
-                div.innerHTML = `
-                    <button class="btn-icon vis-btn" title="Ocultar/Mostrar"><svg class="icon"><path d="${l.visible ? 'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z' : 'M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22'}"/></svg></button>
-                    <span class="item-name">${l.name}</span>
-                    <button class="btn-icon del-btn" style="color:var(--danger)"><svg class="icon"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m8 0V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></button>
-                `;
+                const div = document.createElement('div'); div.className = `list-item ${l.id === activeLayerId ? 'active' : ''}`;
+                div.innerHTML = `<button class="btn-icon vis-btn" title="Visibilidad"><svg class="icon"><path d="${l.visible ? 'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z' : 'M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22'}"/></svg></button><span class="item-name">${l.name}</span><button class="btn-icon del-btn" style="color:var(--danger)"><svg class="icon"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m8 0V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></button>`;
                 div.querySelector('.item-name').onclick = () => selectLayer(l.id);
                 div.querySelector('.vis-btn').onclick = (e) => { e.stopPropagation(); toggleLayerVisibility(l.id); };
                 div.querySelector('.del-btn').onclick = (e) => { e.stopPropagation(); deleteLayer(l.id); };
@@ -260,102 +299,94 @@
         };
 
         const getCompositeCanvas = () => {
-            const temp = document.createElement('canvas');
-            temp.width = canvasWidth; temp.height = canvasHeight;
+            const temp = document.createElement('canvas'); temp.width = canvasWidth; temp.height = canvasHeight;
             const tCtx = temp.getContext('2d');
-            // Fondo blanco base
             tCtx.fillStyle = '#ffffff'; tCtx.fillRect(0, 0, canvasWidth, canvasHeight);
-            // Dibujar capas de abajo hacia arriba
             [...layers].reverse().forEach(l => { if(l.visible) tCtx.drawImage(l.canvas, 0, 0); });
             return temp;
         };
 
+        // --- ZOOM & PAN (Mover lienzo) ---
+        const setZoom = (factor) => {
+            zoomLevel = Math.max(0.2, Math.min(zoomLevel + factor, 5)); // Min 20%, Max 500%
+            ui.wrapper.style.transform = `scale(${zoomLevel})`;
+            ui.zoomLabel.textContent = `${Math.round(zoomLevel * 100)}%`;
+            updateCursor();
+        };
+        document.getElementById('btnZoomIn').addEventListener('click', () => setZoom(0.2));
+        document.getElementById('btnZoomOut').addEventListener('click', () => setZoom(-0.2));
+
+        // Panorámica con Barra Espaciadora
+        document.addEventListener('keydown', e => { 
+            if(e.code === 'Space' && e.target.tagName !== 'INPUT') { 
+                e.preventDefault(); state.spacePressed = true; ui.canvasArea.style.cursor = 'grab'; 
+            } 
+        });
+        document.addEventListener('keyup', e => { 
+            if(e.code === 'Space') { 
+                state.spacePressed = false; state.panActive = false; ui.canvasArea.style.cursor = 'crosshair'; updateCursor();
+            } 
+        });
+        ui.canvasArea.addEventListener('mousedown', e => {
+            if(state.spacePressed || e.button === 1 /* Click rueda ratón */) {
+                state.panActive = true; state.panX = e.clientX; state.panY = e.clientY;
+                state.scrollX = ui.canvasArea.scrollLeft; state.scrollY = ui.canvasArea.scrollTop;
+                ui.canvasArea.style.cursor = 'grabbing';
+            }
+        });
+
         // --- BD Y ESTADO ---
         const dbManager = {
-            async init() { return new Promise(r => { const req = indexedDB.open('ProPaintV2', 1); req.onupgradeneeded = e => { if (!e.target.result.objectStoreNames.contains('projects')) e.target.result.createObjectStore('projects'); }; req.onsuccess = e => r(e.target.result); req.onerror = () => r(null); }); },
+            async init() { return new Promise(r => { const req = indexedDB.open('ProPaintV3', 1); req.onupgradeneeded = e => { if (!e.target.result.objectStoreNames.contains('projects')) e.target.result.createObjectStore('projects'); }; req.onsuccess = e => r(e.target.result); req.onerror = () => r(null); }); },
             async save(n, d) { const db = await this.init(); if (!db) return; return new Promise(r => { db.transaction('projects', 'readwrite').objectStore('projects').put(d, n).oncomplete = () => r(); }); },
             async load(n) { const db = await this.init(); if (!db) return null; return new Promise(r => { const req = db.transaction('projects').objectStore('projects').get(n); req.onsuccess = () => r(req.result); }); },
             async delete(n) { const db = await this.init(); if (!db) return; return new Promise(r => { db.transaction('projects', 'readwrite').objectStore('projects').delete(n).oncomplete = () => r(); }); },
             async getKeys() { const db = await this.init(); if (!db) return []; return new Promise(r => { const req = db.transaction('projects').objectStore('projects').getAllKeys(); req.onsuccess = () => r(req.result); }); }
         };
 
-        // Guardamos las capas individuales como un JSON con DataURLs
         const saveState = async (writeToDB = true) => {
             const snapshotData = layers.map(l => ({ id: l.id, name: l.name, visible: l.visible, data: l.canvas.toDataURL() }));
             state.undoStack.push(JSON.stringify(snapshotData));
-            
             if (writeToDB) {
-                const composite = getCompositeCanvas().toDataURL('image/png'); // Para preview rápido
+                const composite = getCompositeCanvas().toDataURL('image/png');
                 const fullProject = JSON.stringify({ composite, layers: snapshotData });
                 await dbManager.save('_active_session', fullProject);
                 if (state.currentProject) await dbManager.save(state.currentProject, fullProject);
             }
         };
 
-        const undo = () => {
-            if (state.undoStack.length > 1) {
-                state.undoStack.pop(); 
-                loadProjectData(JSON.parse(state.undoStack[state.undoStack.length - 1]));
-                setTimeout(() => saveState(true), 50);
-            }
-        };
+        const undo = () => { if (state.undoStack.length > 1) { state.undoStack.pop(); loadProjectData(JSON.parse(state.undoStack[state.undoStack.length - 1])); setTimeout(() => saveState(true), 50); } };
 
         const loadProjectData = (layerDataArray) => {
-            // Limpiar canvas actual
-            layers.forEach(l => ui.wrapper.removeChild(l.canvas));
-            layers = [];
-            
+            layers.forEach(l => ui.wrapper.removeChild(l.canvas)); layers = [];
             layerDataArray.forEach(ld => {
-                const canvas = document.createElement('canvas'); canvas.className = 'layer-canvas'; canvas.width = canvasWidth; canvas.height = canvasHeight;
-                canvas.style.display = ld.visible ? 'block' : 'none';
-                const ctx = canvas.getContext('2d', { willReadFrequently: true });
-                ui.wrapper.appendChild(canvas);
-                
-                const img = new Image();
-                img.onload = () => ctx.drawImage(img, 0, 0);
-                img.src = ld.data;
-
+                const canvas = document.createElement('canvas'); canvas.className = 'layer-canvas'; canvas.width = canvasWidth; canvas.height = canvasHeight; canvas.style.display = ld.visible ? 'block' : 'none';
+                const ctx = canvas.getContext('2d', { willReadFrequently: true }); ui.wrapper.appendChild(canvas);
+                const img = new Image(); img.onload = () => ctx.drawImage(img, 0, 0); img.src = ld.data;
                 layers.push({ id: ld.id, canvas, ctx, name: ld.name, visible: ld.visible });
             });
             selectLayer(layers[0].id);
         };
 
-        // --- ALGORITMO BOTE DE PINTURA (FLOOD FILL) ---
-        const hexToRgba = hex => {
-            let r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
-            return [r, g, b, 255];
-        };
+        // --- ALGORITMOS (Flood Fill / Utilities) ---
+        const hexToRgba = hex => { let r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16); return [r, g, b, 255]; };
         const colorsMatch = (d, p, c) => d[p]===c[0] && d[p+1]===c[1] && d[p+2]===c[2] && d[p+3]===c[3];
 
         const floodFill = (startX, startY) => {
             const ctx = getActiveCtx(); if(!ctx) return;
-            const w = canvasWidth, h = canvasHeight;
-            const imgData = ctx.getImageData(0,0,w,h);
-            const data = imgData.data;
-            const targetColor = hexToRgba(ui.color.value);
-            
-            const startPos = (startY * w + startX) * 4;
+            const w = canvasWidth, h = canvasHeight; const imgData = ctx.getImageData(0,0,w,h); const data = imgData.data;
+            const targetColor = hexToRgba(ui.color.value); const startPos = (startY * w + startX) * 4;
             const startColor = [data[startPos], data[startPos+1], data[startPos+2], data[startPos+3]];
-
             if(startColor[0] === targetColor[0] && startColor[1] === targetColor[1] && startColor[2] === targetColor[2] && startColor[3] === targetColor[3]) return;
-
             const stack = [[startX, startY]];
             while(stack.length) {
-                let [x, y] = stack.pop();
-                let pos = (y * w + x) * 4;
+                let [x, y] = stack.pop(); let pos = (y * w + x) * 4;
                 while(y >= 0 && colorsMatch(data, pos, startColor)) { y--; pos -= w * 4; }
-                pos += w * 4; y++;
-                let reachLeft = false, reachRight = false;
+                pos += w * 4; y++; let reachLeft = false, reachRight = false;
                 while(y < h && colorsMatch(data, pos, startColor)) {
                     data[pos] = targetColor[0]; data[pos+1] = targetColor[1]; data[pos+2] = targetColor[2]; data[pos+3] = 255;
-                    if(x > 0) {
-                        if(colorsMatch(data, pos - 4, startColor)) { if(!reachLeft) { stack.push([x - 1, y]); reachLeft = true; } }
-                        else if(reachLeft) reachLeft = false;
-                    }
-                    if(x < w - 1) {
-                        if(colorsMatch(data, pos + 4, startColor)) { if(!reachRight) { stack.push([x + 1, y]); reachRight = true; } }
-                        else if(reachRight) reachRight = false;
-                    }
+                    if(x > 0) { if(colorsMatch(data, pos - 4, startColor)) { if(!reachLeft) { stack.push([x - 1, y]); reachLeft = true; } } else if(reachLeft) reachLeft = false; }
+                    if(x < w - 1) { if(colorsMatch(data, pos + 4, startColor)) { if(!reachRight) { stack.push([x + 1, y]); reachRight = true; } } else if(reachRight) reachRight = false; }
                     y++; pos += w * 4;
                 }
             }
@@ -367,12 +398,13 @@
             const canvas = getActiveCanvas(); if(!canvas) return {x:0, y:0};
             const r = canvas.getBoundingClientRect(); const evt = e.touches ? e.touches[0] : e;
             if (!evt) return { x: state.lastX, y: state.lastY };
+            // r.width y r.height ya vienen afectados por el CSS transform (Zoom), así que la fórmula se adapta automáticamente.
             return { x: Math.floor((evt.clientX - r.left) * (canvasWidth / r.width)), y: Math.floor((evt.clientY - r.top) * (canvasHeight / r.height)) }; 
         };
 
         const startInteraction = (e) => {
-            const layer = layers.find(l => l.id === activeLayerId);
-            if(!layer || !layer.visible) return; // No dibujar en capas ocultas
+            if(state.spacePressed || state.panActive || e.button === 1) return; // Si está arrastrando el canvas, no dibujar
+            const layer = layers.find(l => l.id === activeLayerId); if(!layer || !layer.visible) return; 
 
             const { x, y } = getPos(e);
             
@@ -383,24 +415,27 @@
             if (state.tool === 'bucket') { floodFill(x, y); saveState(true); return; }
             if (state.tool === 'text') {
                 const text = prompt("Introduce el texto:");
-                if (text) { 
-                    const ctx = getActiveCtx();
-                    ctx.fillStyle = ui.color.value; 
-                    ctx.font = `${ui.size.value * 3}px ${document.getElementById('fontType').value}`; 
-                    ctx.imageSmoothingEnabled = !document.getElementById('fontType').value.includes('Press'); 
-                    ctx.fillText(text, x, y); saveState(true); 
-                }
-                return;
+                if (text) { const ctx = getActiveCtx(); ctx.fillStyle = ui.color.value; ctx.font = `${ui.size.value * 3}px ${document.getElementById('fontType').value}`; ctx.imageSmoothingEnabled = !document.getElementById('fontType').value.includes('Press'); ctx.fillText(text, x, y); saveState(true); } return;
             }
 
             state.drawing = true; [state.lastX, state.lastY] = [x, y]; 
             if (state.tool === 'shape') { state.snapshot = getActiveCtx().getImageData(0, 0, canvasWidth, canvasHeight); } 
-            else { processDraw(x, y); }
+            else { 
+                state.pts = [{x,y}, {x,y}]; // Iniciar para Estabilización
+                processDraw(x, y); 
+            }
         };
 
         const stopInteraction = () => { if (!state.drawing) return; state.drawing = false; getActiveCtx().beginPath(); saveState(true); };
         
         const drawInteraction = (e) => { 
+            // Manejar Panorámica
+            if(state.panActive) {
+                ui.canvasArea.scrollLeft = state.scrollX - (e.clientX - state.panX);
+                ui.canvasArea.scrollTop = state.scrollY - (e.clientY - state.panY);
+                return;
+            }
+
             if (!state.drawing || ['picker','text','bucket'].includes(state.tool)) return; 
             if (e.cancelable && e.type === 'touchmove') e.preventDefault(); 
             const { x, y } = getPos(e); 
@@ -409,8 +444,7 @@
         };
 
         const drawShape = (x, y) => {
-            const ctx = getActiveCtx();
-            ctx.beginPath(); ctx.lineWidth = ui.size.value; ctx.strokeStyle = ui.color.value; ctx.fillStyle = ui.color.value;
+            const ctx = getActiveCtx(); ctx.beginPath(); ctx.lineWidth = ui.size.value; ctx.strokeStyle = ui.color.value; ctx.fillStyle = ui.color.value;
             const shape = document.getElementById('shapeType').value;
             if (shape === 'rect') ctx.rect(state.lastX, state.lastY, x - state.lastX, y - state.lastY);
             else if (shape === 'circle') ctx.arc(state.lastX, state.lastY, Math.sqrt(Math.pow(x-state.lastX, 2) + Math.pow(y-state.lastY, 2)), 0, 2*Math.PI);
@@ -420,69 +454,77 @@
 
         const processDraw = (x, y) => {
             const ctx = getActiveCtx();
+            
             if (state.isPixelMode) {
                 const px = Math.floor(x / state.pSize) * state.pSize; const py = Math.floor(y / state.pSize) * state.pSize;
-                // Borrador en modo capa = borrar píxeles (transparencia) no pintar blanco
                 if(state.tool === 'eraser') { ctx.clearRect(px, py, state.pSize, state.pSize); }
+                else if (state.tool === 'airbrush') {
+                    // Spray simple para Pixel Art
+                    if(Math.random() > 0.5) { ctx.fillStyle = ui.color.value; ctx.fillRect(px + (Math.random()*state.pSize*2 - state.pSize), py + (Math.random()*state.pSize*2 - state.pSize), state.pSize, state.pSize); }
+                }
                 else {
-                    ctx.fillStyle = ui.color.value;
-                    const blocks = Math.max(1, Math.ceil(ui.size.value / 10)); 
+                    ctx.fillStyle = ui.color.value; const blocks = Math.max(1, Math.ceil(ui.size.value / 10)); 
                     for(let i=0; i<blocks; i++) for(let j=0; j<blocks; j++) ctx.fillRect(px + (i*state.pSize), py + (j*state.pSize), state.pSize, state.pSize);
                 }
             } else {
                 ctx.lineWidth = ui.size.value; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+                
+                if (state.tool === 'airbrush') {
+                    // Aerógrafo Suave: Gradiente radial con baja opacidad
+                    const [r, g, b] = hexToRgba(ui.color.value);
+                    const rad = ui.size.value * 2;
+                    const grad = ctx.createRadialGradient(x, y, 0, x, y, rad);
+                    grad.addColorStop(0, `rgba(${r},${g},${b}, 0.05)`); // Centro suave
+                    grad.addColorStop(1, `rgba(${r},${g},${b}, 0)`); // Borde difuminado
+                    ctx.fillStyle = grad; ctx.globalCompositeOperation = 'source-over';
+                    ctx.beginPath(); ctx.arc(x, y, rad, 0, Math.PI*2); ctx.fill();
+                    [state.lastX, state.lastY] = [x, y];
+                    return;
+                }
+
                 if(state.tool === 'eraser') { ctx.globalCompositeOperation = 'destination-out'; ctx.strokeStyle = 'rgba(0,0,0,1)'; }
                 else { ctx.globalCompositeOperation = 'source-over'; ctx.strokeStyle = ui.color.value; }
                 
-                ctx.beginPath(); ctx.moveTo(state.lastX, state.lastY); ctx.lineTo(x, y); ctx.stroke();
-                ctx.globalCompositeOperation = 'source-over'; // Restaurar
+                // LAZY MOUSE (Estabilizador de Trazo)
+                if (ui.smoothMode.checked && state.tool !== 'eraser') {
+                    state.pts.push({x, y});
+                    if (state.pts.length > 2) {
+                        const last2 = state.pts[state.pts.length - 3];
+                        const last1 = state.pts[state.pts.length - 2];
+                        const pt = state.pts[state.pts.length - 1];
+                        const mid1 = {x: (last2.x + last1.x)/2, y: (last2.y + last1.y)/2};
+                        const mid2 = {x: (last1.x + pt.x)/2, y: (last1.y + pt.y)/2};
+                        
+                        ctx.beginPath(); ctx.moveTo(mid1.x, mid1.y);
+                        ctx.quadraticCurveTo(last1.x, last1.y, mid2.x, mid2.y); ctx.stroke();
+                    }
+                } else {
+                    // Dibujo normal
+                    ctx.beginPath(); ctx.moveTo(state.lastX, state.lastY); ctx.lineTo(x, y); ctx.stroke();
+                }
+                ctx.globalCompositeOperation = 'source-over'; 
                 [state.lastX, state.lastY] = [x, y];
             }
         };
 
-        // --- SISTEMA PROYECTOS Y FONDO PANTALLA ---
-        const clearCanvas = (resetProject = true) => { 
-            layers.forEach(l => ui.wrapper.removeChild(l.canvas)); layers = []; layerCounter = 0; addLayer("Fondo"); 
-            // Pintar la capa base de blanco por defecto
-            getActiveCtx().fillStyle = '#ffffff'; getActiveCtx().fillRect(0,0,canvasWidth,canvasHeight);
-            if(resetProject) { state.currentProject = null; localStorage.removeItem('activeProject'); } 
-            saveState(true); renderProjects(); 
-        };
+        // --- SISTEMA GENERAL ---
+        const clearCanvas = (resetProject = true) => { layers.forEach(l => ui.wrapper.removeChild(l.canvas)); layers = []; layerCounter = 0; addLayer("Fondo"); getActiveCtx().fillStyle = '#ffffff'; getActiveCtx().fillRect(0,0,canvasWidth,canvasHeight); if(resetProject) { state.currentProject = null; localStorage.removeItem('activeProject'); } saveState(true); renderProjects(); };
 
-        async function initApp() { 
-            const saved = await dbManager.load('_active_session');
-            if(saved) {
-                const data = JSON.parse(saved);
-                if(data.layers) loadProjectData(data.layers); 
-                else clearCanvas(false); // Fallback old version
-                state.currentProject = localStorage.getItem('activeProject');
-            } else { clearCanvas(true); }
-            renderProjects();
-        }
+        async function initApp() { const saved = await dbManager.load('_active_session'); if(saved) { const data = JSON.parse(saved); if(data.layers) loadProjectData(data.layers); else clearCanvas(false); state.currentProject = localStorage.getItem('activeProject'); } else { clearCanvas(true); } renderProjects(); }
 
-        async function saveProject() { 
-            const name = prompt("Nombre del proyecto:", state.currentProject || "Nuevo Proyecto"); 
-            if (!name || name === '_active_session') return; 
-            state.currentProject = name; localStorage.setItem('activeProject', name); 
-            await saveState(true); renderProjects(); 
-        }
+        async function saveProject() { const name = prompt("Nombre del proyecto:", state.currentProject || "Nuevo Proyecto"); if (!name || name === '_active_session') return; state.currentProject = name; localStorage.setItem('activeProject', name); await saveState(true); renderProjects(); }
 
-        async function renderProjects() { 
-            const keys = await dbManager.getKeys(); 
-            ui.projectList.innerHTML = ""; 
-            keys.filter(k => k !== '_active_session').forEach(key => { 
-                const div = document.createElement('div'); div.className = `list-item ${state.currentProject === key ? 'active' : ''}`; 
-                div.innerHTML = `<span class="item-name" title="${key}">${key}</span> <button class="btn-icon del-btn" style="color:var(--danger)"><svg class="icon"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m8 0V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></button>`; 
-                div.querySelector('.item-name').onclick = async () => { const data = await dbManager.load(key); if(data) { state.currentProject = key; localStorage.setItem('activeProject', key); loadProjectData(JSON.parse(data).layers); ui.sidebar.classList.add('collapsed'); renderProjects(); saveState(false); } };
-                div.querySelector('.del-btn').onclick = async (e) => { e.stopPropagation(); if(confirm(`¿Eliminar "${key}"?`)){ await dbManager.delete(key); if(state.currentProject === key){ state.currentProject = null; localStorage.removeItem('activeProject'); } renderProjects(); } };
-                ui.projectList.appendChild(div); 
-            }); 
-        }
+        async function renderProjects() { const keys = await dbManager.getKeys(); ui.projectList.innerHTML = ""; keys.filter(k => k !== '_active_session').forEach(key => { const div = document.createElement('div'); div.className = `list-item ${state.currentProject === key ? 'active' : ''}`; div.innerHTML = `<span class="item-name" title="${key}">${key}</span> <button class="btn-icon del-btn" style="color:var(--danger)"><svg class="icon"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m8 0V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></button>`; div.querySelector('.item-name').onclick = async () => { const data = await dbManager.load(key); if(data) { state.currentProject = key; localStorage.setItem('activeProject', key); loadProjectData(JSON.parse(data).layers); ui.sidebar.classList.add('collapsed'); renderProjects(); saveState(false); } }; div.querySelector('.del-btn').onclick = async (e) => { e.stopPropagation(); if(confirm(`¿Eliminar "${key}"?`)){ await dbManager.delete(key); if(state.currentProject === key){ state.currentProject = null; localStorage.removeItem('activeProject'); } renderProjects(); } }; ui.projectList.appendChild(div); }); }
 
-        // --- CURSOR Y EVENTOS ---
+        // --- PALETAS DE COLORES ---
+        document.querySelectorAll('.swatch').forEach(swatch => {
+            swatch.addEventListener('click', (e) => { ui.color.value = e.target.dataset.hex; });
+        });
+
+        // --- EVENTOS Y CURSOR ---
         const updateCursor = () => {
-            if (window.innerWidth <= 768) { ui.cursor.style.display = 'none'; return; }
-            if (['brush','eraser'].includes(state.tool)) {
+            if (window.innerWidth <= 768 || state.spacePressed) { ui.cursor.style.display = 'none'; return; }
+            if (['brush','eraser', 'airbrush'].includes(state.tool)) {
                 const rect = ui.wrapper.getBoundingClientRect(); const scale = rect.width / canvasWidth;
                 ui.cursor.style.width = `${ui.size.value * scale}px`; ui.cursor.style.height = `${ui.size.value * scale}px`;
                 ui.cursor.style.borderRadius = state.isPixelMode ? '0%' : '50%';
@@ -498,11 +540,11 @@
 
         ui.wrapper.addEventListener('mousedown', startInteraction); ui.wrapper.addEventListener('touchstart', startInteraction, {passive:false});
         window.addEventListener('mousemove', drawInteraction); window.addEventListener('touchmove', drawInteraction, {passive:false});
-        window.addEventListener('mouseup', stopInteraction); window.addEventListener('touchend', stopInteraction);
+        window.addEventListener('mouseup', () => { stopInteraction(); state.panActive = false; }); 
+        window.addEventListener('touchend', stopInteraction);
 
         document.getElementById('tools').addEventListener('click', e => {
-            const btn = e.target.closest('.tool-btn'); if(!btn) return;
-            state.tool = btn.dataset.tool; 
+            const btn = e.target.closest('.tool-btn'); if(!btn) return; state.tool = btn.dataset.tool; 
             ui.tools.forEach(b => b.classList.remove('active')); btn.classList.add('active');
             document.getElementById('menuShape').classList.toggle('active', state.tool === 'shape');
             document.getElementById('menuText').classList.toggle('active', state.tool === 'text');
@@ -518,49 +560,39 @@
         document.getElementById('btnUndo').addEventListener('click', undo);
         document.getElementById('btnSaveProj').addEventListener('click', saveProject);
         
-        // Exportación Normal
+        // Exportación con Escalado
         document.getElementById('btnExport').addEventListener('click', () => { 
-            const a = document.createElement('a'); a.download = `${state.currentProject || 'Dibujo'}.png`; a.href = getCompositeCanvas().toDataURL('image/png'); a.click(); 
+            const scaleStr = prompt("¿Multiplicador de tamaño para exportar? \n(Ej. Escribe 1 para normal, o 5 para que el Pixel Art se vea grande y nítido)", "1");
+            const scale = parseInt(scaleStr) || 1;
+            
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvasWidth * scale; tempCanvas.height = canvasHeight * scale;
+            const ctx2 = tempCanvas.getContext('2d');
+            
+            // Si es Pixel Art, desactivar suavizado para que crezca sin borrosidad
+            ctx2.imageSmoothingEnabled = !state.isPixelMode; 
+            ctx2.drawImage(getCompositeCanvas(), 0, 0, tempCanvas.width, tempCanvas.height);
+
+            const a = document.createElement('a'); a.download = `${state.currentProject || 'Dibujo'}.png`; a.href = tempCanvas.toDataURL('image/png'); a.click(); 
         });
 
-        // GENERADOR DE FONDO DE PANTALLA INTELIGENTE
         document.getElementById('btnWallpaper').addEventListener('click', () => {
-            const screenW = window.screen.width * window.devicePixelRatio;
-            const screenH = window.screen.height * window.devicePixelRatio;
-            
-            const wpCanvas = document.createElement('canvas');
-            wpCanvas.width = screenW; wpCanvas.height = screenH;
-            const wpCtx = wpCanvas.getContext('2d');
-            
-            // Rellenar con color de fondo (usamos el pixel [0,0] del dibujo o blanco si es transparente)
-            wpCtx.fillStyle = '#111111'; // Fondo oscuro moderno por defecto
-            wpCtx.fillRect(0, 0, screenW, screenH);
-
-            const comp = getCompositeCanvas();
-            // Calcular escala para "Cover" (que cubra todo sin distorsionar) o "Contain" (que quepa entero)
-            // Elegimos "Contain" para no cortar el dibujo del usuario
-            const ratio = Math.min(screenW / canvasWidth, screenH / canvasHeight);
-            const finalW = canvasWidth * ratio;
-            const finalH = canvasHeight * ratio;
-            
-            // Dibujarlo centrado
-            wpCtx.imageSmoothingEnabled = !state.isPixelMode; // Evitar que el Pixel Art se vuelva borroso
+            const screenW = window.screen.width * window.devicePixelRatio; const screenH = window.screen.height * window.devicePixelRatio;
+            const wpCanvas = document.createElement('canvas'); wpCanvas.width = screenW; wpCanvas.height = screenH; const wpCtx = wpCanvas.getContext('2d');
+            wpCtx.fillStyle = '#111111'; wpCtx.fillRect(0, 0, screenW, screenH);
+            const comp = getCompositeCanvas(); const ratio = Math.min(screenW / canvasWidth, screenH / canvasHeight);
+            const finalW = canvasWidth * ratio; const finalH = canvasHeight * ratio;
+            wpCtx.imageSmoothingEnabled = !state.isPixelMode; 
             wpCtx.drawImage(comp, (screenW - finalW) / 2, (screenH - finalH) / 2, finalW, finalH);
-
-            const a = document.createElement('a'); 
-            a.download = `Fondo_${state.currentProject || 'Dibujo'}_${screenW}x${screenH}.png`; 
-            a.href = wpCanvas.toDataURL('image/png'); 
-            a.click();
-            
-            alert(`¡Imagen descargada a la resolución exacta de tu pantalla (${screenW}x${screenH})!\n\nSolo búscalo en tu galería y establécelo como fondo de pantalla.`);
+            const a = document.createElement('a'); a.download = `Fondo_${state.currentProject || 'Dibujo'}.png`; a.href = wpCanvas.toDataURL('image/png'); a.click();
         });
 
-        // Atajos de teclado
         document.addEventListener('keydown', e => { 
             if (e.ctrlKey && e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); }
             if (e.ctrlKey && e.key.toLowerCase() === 's') { e.preventDefault(); saveProject(); }
-            if (!e.ctrlKey) { 
+            if (!e.ctrlKey && e.target.tagName !== 'INPUT') { 
                 if (e.key.toLowerCase() === 'b') document.querySelector('[data-tool="brush"]').click(); 
+                if (e.key.toLowerCase() === 'a') document.querySelector('[data-tool="airbrush"]').click(); 
                 if (e.key.toLowerCase() === 'e') document.querySelector('[data-tool="eraser"]').click(); 
                 if (e.key.toLowerCase() === 'g') document.querySelector('[data-tool="bucket"]').click(); 
                 if (e.key.toLowerCase() === 'u') document.querySelector('[data-tool="shape"]').click();
@@ -569,8 +601,7 @@
             }
         });
 
-        initApp();
-        updateCursor();
+        initApp(); updateCursor();
     </script>
 </body>
 </html>
