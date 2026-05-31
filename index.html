@@ -237,6 +237,12 @@
         };
 
         const canvasWidth = 800; const canvasHeight = 600;
+        
+        // --- CONFIGURACIÓN DE NUBE ---
+        const SUPABASE_URL = 'https://TU_ID_AQUI.supabase.co'; // <--- ASEGÚRATE DE PONER TU URL AQUÍ
+        const SUPABASE_KEY = 'sb_publishable_6U_FjW2_dWHdTv-siXF0oQ_6ACrauuS';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
         let layers = []; let activeLayerId = null; let layerCounter = 0;
         let zoomLevel = 1;
 
@@ -600,6 +606,34 @@
                 if (e.key.toLowerCase() === 'i') document.querySelector('[data-tool="picker"]').click(); 
             }
         });
+        
+        // --- FUNCIÓN DE SUBIDA A LA NUBE ---
+async function subirALaNube() {
+    const nombre = prompt("Nombre para guardar en la nube:", state.currentProject || "mi_dibujo");
+    if (!nombre) return;
+
+    // Convertimos lo que ves en pantalla (el canvas) a un archivo que el servidor entienda
+    const canvas = getCompositeCanvas();
+    canvas.toBlob(async (blob) => {
+        const fileName = `${nombre}_${Date.now()}.png`;
+
+        // Aquí es donde sucede la magia: conectamos con tu bucket 'dibujos'
+        const { data, error } = await supabase.storage
+            .from('dibujos') 
+            .upload(fileName, blob, {
+                contentType: 'image/png'
+            });
+
+        if (error) {
+            console.error("Error subiendo:", error);
+            alert("Hubo un error al subir a la nube: " + error.message);
+        } else {
+            // Obtenemos el link público para que lo puedas ver
+            const { data: urlData } = supabase.storage.from('dibujos').getPublicUrl(fileName);
+            alert("¡Éxito! Tu dibujo está en la nube. Link: " + urlData.publicUrl);
+        }
+    }, 'image/png');
+}
 
         initApp(); updateCursor();
     </script>
